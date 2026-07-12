@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase/server'
 
 function employeeCodeToEmail(employeeCode: string) {
   const clean = employeeCode.toLowerCase().replace(/[^a-z0-9]/g, '')
@@ -9,11 +9,7 @@ function employeeCodeToEmail(employeeCode: string) {
 
 export async function loginWithEmployeeId(employeeCode: string, password: string) {
   const email = employeeCodeToEmail(employeeCode)
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabase = await createClient()
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 

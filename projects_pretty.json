@@ -1,0 +1,357 @@
+﻿{
+    "projects":  [
+                     {
+                         "name":  "projects/18397254620194841886",
+                         "title":  "Linkage Digital Admin Hub",
+                         "visibility":  "PRIVATE",
+                         "createTime":  "2026-07-10T21:53:41.307963Z",
+                         "updateTime":  "2026-07-10T22:31:22.021396Z",
+                         "projectType":  "TEXT_TO_UI_PRO",
+                         "thumbnailScreenshot":  {
+                                                     "name":  "projects/18397254620194841886/files/00c69273bfb146bdb3e031d5a80c0368",
+                                                     "downloadUrl":  "https://lh3.googleusercontent.com/aida/AP1WRLs0KlhIvLSc0hx5dfUZmanlrWRvC1HlNxy_uAgZamKEwOqr7sAzon7TrgubqVvqv31nITFFXOA4YoKPhwbLzI7klalhllCBNwvvOnsE0nMLIXlx6MtyynGKkxPBpZd4CjrDRCULDdagLvg11FP2iQ2a6p7ikV5eCrLcMnS-7SK5ryB_lGuOsFWrPcHas-MTmJUFZYD8u6cLQ_PmRupDBDx6Eyd3CjbWoIxwtkYESNjAVJ8Q-t9d0gZU5qUu"
+                                                 },
+                         "origin":  "STITCH",
+                         "deviceType":  "MOBILE",
+                         "designTheme":  {
+                                             "colorMode":  "LIGHT",
+                                             "font":  "PLUS_JAKARTA_SANS",
+                                             "roundness":  "ROUND_EIGHT",
+                                             "customColor":  "#4338ca",
+                                             "headlineFont":  "PLUS_JAKARTA_SANS",
+                                             "bodyFont":  "INTER",
+                                             "labelFont":  "INTER",
+                                             "namedColors":  {
+                                                                 "background":  "#fcf8ff",
+                                                                 "error":  "#ba1a1a",
+                                                                 "error_container":  "#ffdad6",
+                                                                 "inverse_on_surface":  "#f3effb",
+                                                                 "inverse_primary":  "#c3c0ff",
+                                                                 "inverse_surface":  "#302f39",
+                                                                 "on_background":  "#1b1b23",
+                                                                 "on_error":  "#ffffff",
+                                                                 "on_error_container":  "#93000a",
+                                                                 "on_primary":  "#ffffff",
+                                                                 "on_primary_container":  "#c1beff",
+                                                                 "on_primary_fixed":  "#100069",
+                                                                 "on_primary_fixed_variant":  "#372abf",
+                                                                 "on_secondary":  "#ffffff",
+                                                                 "on_secondary_container":  "#00714d",
+                                                                 "on_secondary_fixed":  "#002113",
+                                                                 "on_secondary_fixed_variant":  "#005236",
+                                                                 "on_surface":  "#1b1b23",
+                                                                 "on_surface_variant":  "#464554",
+                                                                 "on_tertiary":  "#ffffff",
+                                                                 "on_tertiary_container":  "#ffb0b4",
+                                                                 "on_tertiary_fixed":  "#40000c",
+                                                                 "on_tertiary_fixed_variant":  "#920028",
+                                                                 "outline":  "#777586",
+                                                                 "outline_variant":  "#c7c4d7",
+                                                                 "primary":  "#2a14b4",
+                                                                 "primary_container":  "#4338ca",
+                                                                 "primary_fixed":  "#e3dfff",
+                                                                 "primary_fixed_dim":  "#c3c0ff",
+                                                                 "secondary":  "#006c49",
+                                                                 "secondary_container":  "#6cf8bb",
+                                                                 "secondary_fixed":  "#6ffbbe",
+                                                                 "secondary_fixed_dim":  "#4edea3",
+                                                                 "surface":  "#fcf8ff",
+                                                                 "surface_bright":  "#fcf8ff",
+                                                                 "surface_container":  "#f0ecf8",
+                                                                 "surface_container_high":  "#eae6f3",
+                                                                 "surface_container_highest":  "#e4e1ed",
+                                                                 "surface_container_low":  "#f6f2fe",
+                                                                 "surface_container_lowest":  "#ffffff",
+                                                                 "surface_dim":  "#dcd8e4",
+                                                                 "surface_tint":  "#5148d7",
+                                                                 "surface_variant":  "#e4e1ed",
+                                                                 "tertiary":  "#7b0020",
+                                                                 "tertiary_container":  "#a6002f",
+                                                                 "tertiary_fixed":  "#ffdada",
+                                                                 "tertiary_fixed_dim":  "#ffb3b6"
+                                                             },
+                                             "designMd":  "---\nname: Linkage Digital System\ncolors:\n  surface: \u0027#fcf8ff\u0027\n  surface-dim: \u0027#dcd8e4\u0027\n  surface-bright: \u0027#fcf8ff\u0027\n  surface-container-lowest: \u0027#ffffff\u0027\n  surface-container-low: \u0027#f6f2fe\u0027\n  surface-container: \u0027#f0ecf8\u0027\n  surface-container-high: \u0027#eae6f3\u0027\n  surface-container-highest: \u0027#e4e1ed\u0027\n  on-surface: \u0027#1b1b23\u0027\n  on-surface-variant: \u0027#464554\u0027\n  inverse-surface: \u0027#302f39\u0027\n  inverse-on-surface: \u0027#f3effb\u0027\n  outline: \u0027#777586\u0027\n  outline-variant: \u0027#c7c4d7\u0027\n  surface-tint: \u0027#5148d7\u0027\n  primary: \u0027#2a14b4\u0027\n  on-primary: \u0027#ffffff\u0027\n  primary-container: \u0027#4338ca\u0027\n  on-primary-container: \u0027#c1beff\u0027\n  inverse-primary: \u0027#c3c0ff\u0027\n  secondary: \u0027#006c49\u0027\n  on-secondary: \u0027#ffffff\u0027\n  secondary-container: \u0027#6cf8bb\u0027\n  on-secondary-container: \u0027#00714d\u0027\n  tertiary: \u0027#7b0020\u0027\n  on-tertiary: \u0027#ffffff\u0027\n  tertiary-container: \u0027#a6002f\u0027\n  on-tertiary-container: \u0027#ffb0b4\u0027\n  error: \u0027#ba1a1a\u0027\n  on-error: \u0027#ffffff\u0027\n  error-container: \u0027#ffdad6\u0027\n  on-error-container: \u0027#93000a\u0027\n  primary-fixed: \u0027#e3dfff\u0027\n  primary-fixed-dim: \u0027#c3c0ff\u0027\n  on-primary-fixed: \u0027#100069\u0027\n  on-primary-fixed-variant: \u0027#372abf\u0027\n  secondary-fixed: \u0027#6ffbbe\u0027\n  secondary-fixed-dim: \u0027#4edea3\u0027\n  on-secondary-fixed: \u0027#002113\u0027\n  on-secondary-fixed-variant: \u0027#005236\u0027\n  tertiary-fixed: \u0027#ffdada\u0027\n  tertiary-fixed-dim: \u0027#ffb3b6\u0027\n  on-tertiary-fixed: \u0027#40000c\u0027\n  on-tertiary-fixed-variant: \u0027#920028\u0027\n  background: \u0027#fcf8ff\u0027\n  on-background: \u0027#1b1b23\u0027\n  surface-variant: \u0027#e4e1ed\u0027\ntypography:\n  display-lg:\n    fontFamily: Plus Jakarta Sans\n    fontSize: 48px\n    fontWeight: \u0027700\u0027\n    lineHeight: 56px\n    letterSpacing: -0.02em\n  headline-lg:\n    fontFamily: Plus Jakarta Sans\n    fontSize: 32px\n    fontWeight: \u0027600\u0027\n    lineHeight: 40px\n    letterSpacing: -0.01em\n  headline-md:\n    fontFamily: Plus Jakarta Sans\n    fontSize: 24px\n    fontWeight: \u0027600\u0027\n    lineHeight: 32px\n  headline-sm:\n    fontFamily: Plus Jakarta Sans\n    fontSize: 18px\n    fontWeight: \u0027600\u0027\n    lineHeight: 28px\n  body-lg:\n    fontFamily: Inter\n    fontSize: 16px\n    fontWeight: \u0027400\u0027\n    lineHeight: 24px\n  body-md:\n    fontFamily: Inter\n    fontSize: 14px\n    fontWeight: \u0027400\u0027\n    lineHeight: 20px\n  body-sm:\n    fontFamily: Inter\n    fontSize: 12px\n    fontWeight: \u0027400\u0027\n    lineHeight: 16px\n  label-md:\n    fontFamily: Inter\n    fontSize: 14px\n    fontWeight: \u0027500\u0027\n    lineHeight: 20px\n  label-sm:\n    fontFamily: Inter\n    fontSize: 12px\n    fontWeight: \u0027600\u0027\n    lineHeight: 16px\n    letterSpacing: 0.05em\nrounded:\n  sm: 0.25rem\n  DEFAULT: 0.5rem\n  md: 0.75rem\n  lg: 1rem\n  xl: 1.5rem\n  full: 9999px\nspacing:\n  unit: 4px\n  sidebar-width: 240px\n  sidebar-collapsed: 64px\n  container-max: 1280px\n  gutter: 24px\n  margin-mobile: 16px\n  margin-desktop: 32px\n---\n\n## Brand \u0026 Style\nThe design system for Linkage Digital is built on the principles of **Precision, Clarity, and Modernity**. It targets professional environments where efficiency in time-tracking and employee management is paramount. The aesthetic borrows from the \"Linear\" school of designâ€”combining high-utility density with premium, minimalist finishes.\n\nThe emotional response should be one of focused calm. By utilizing high-quality geometric typography and a strictly governed neutral palette, the interface recedes into the background, allowing the user\u0027s data and tasks to take center stage. The style is **Modern Corporate**, characterized by subtle borders, intentional whitespace, and functional elevation.\n\n## Colors\nThe palette is dominated by a clean, off-white foundation to reduce eye strain during long working hours. \n\n- **Primary (Deep Indigo):** Used exclusively for high-intent actions, active navigation states, and primary brand moments.\n- **Success (Emerald):** Reserved for \"Clock-in\" actions, positive status indicators, and completed milestones.\n- **Destructive (Rose):** Used sparingly for errors, \"Clock-out\" (when used as a termination of a session), and destructive data actions.\n- **Neutrals:** A range of grays used to establish hierarchy. The background sits at #FAFAFA, while interactive surfaces use pure white #FFFFFF to \"pop\" against the floor.\n\n## Typography\nThis design system employs a dual-font strategy. **Plus Jakarta Sans** provides a confident, geometric personality for headings and large display text. **Inter** is used for all functional UI elements, data tables, and body copy to ensure maximum legibility at small sizes.\n\nFor mobile devices, `display-lg` and `headline-lg` should scale down by 20% (e.g., 48px to 38px) to maintain balance. Tabular data should strictly use `body-sm` or `body-md` with \"tabular-nums\" CSS styling enabled to ensure alignment in time-tracking columns.\n\n## Layout \u0026 Spacing\nThe layout follows a **Fixed-Fluid Hybrid** model. The sidebar is a fixed-width element (240px) that can collapse into a narrow icon-only bar (64px). The main content area uses a fluid grid with a maximum container width of 1280px to ensure readability on ultra-wide monitors.\n\nA strict 4px base unit governs all padding and margins. \n- **Desktop:** 32px outer margins with 24px gutters between grid items.\n- **Tablet:** 24px outer margins.\n- **Mobile:** 16px outer margins. Sidebar transforms into a bottom sheet or a full-screen overlay.\n\n## Elevation \u0026 Depth\nDepth is created through **Tonal Layering** and **Low-Contrast Outlines**. Instead of heavy shadows, the system uses 1px borders (#E5E7EB) to define boundaries.\n\n- **Level 0 (Floor):** #FAFAFA - The main application background.\n- **Level 1 (Card):** #FFFFFF - White surfaces with a very subtle 2px blur shadow (alpha 0.05) and a 1px solid border.\n- **Level 2 (Overlay/Modal):** #FFFFFF - Higher elevation with a 12px blur shadow (alpha 0.1) and a slightly darker border (#D1D5DB).\n- **Backdrop:** Use a 4px blur on the background layer when modals are active to maintain focus.\n\n## Shapes\nThe shape language is consistently \"Rounded\" to soften the professional tone. \n- **Small elements (Checkboxes, Tags):** 4px (rounded-sm).\n- **Standard elements (Buttons, Inputs, Cards):** 8px (base).\n- **Large elements (Modals, Feature Sections):** 16px (rounded-xl).\n- **Avatars:** Strictly circular to contrast against the geometric grid.\n\n## Components\n- **Buttons:** Primary buttons use the Indigo background with white text. Secondary buttons use a white background with a gray border and #18181B text. \"Clock-in\" buttons should utilize a subtle pulse animation or a soft Emerald glow.\n- **Input Fields:** 1px #E5E7EB border that transitions to #4338CA on focus. Use Inter 14px for input text. Label text sits above the field in `label-sm`.\n- **Time-Tracking Cards:** Use a high-contrast layout. The \"time\" display should use Plus Jakarta Sans Bold for prominence, while metadata (Project, Task) uses Inter.\n- **Sidebar:** Navigation items use a \"ghost\" style (no background) that transitions to a light Indigo tint (#EEF2FF) with Indigo text on active state.\n- **Status Chips:** Small, semi-transparent background tints of the status color (e.g., Emerald at 10% opacity) with high-saturation text for high glanceability.\n- **Data Tables:** No vertical borders. Use 1px horizontal dividers. Header row uses `label-sm` with a light gray background (#F9FAFB).",
+                                             "colorVariant":  "FIDELITY",
+                                             "overridePrimaryColor":  "#4338ca",
+                                             "overrideSecondaryColor":  "#10b981",
+                                             "overrideTertiaryColor":  "#e11d48",
+                                             "spacingScale":  2,
+                                             "typography":  {
+                                                                "body-lg":  {
+                                                                                "fontFamily":  "Inter",
+                                                                                "fontSize":  "16px",
+                                                                                "fontWeight":  "400",
+                                                                                "lineHeight":  "24px"
+                                                                            },
+                                                                "body-md":  {
+                                                                                "fontFamily":  "Inter",
+                                                                                "fontSize":  "14px",
+                                                                                "fontWeight":  "400",
+                                                                                "lineHeight":  "20px"
+                                                                            },
+                                                                "body-sm":  {
+                                                                                "fontFamily":  "Inter",
+                                                                                "fontSize":  "12px",
+                                                                                "fontWeight":  "400",
+                                                                                "lineHeight":  "16px"
+                                                                            },
+                                                                "display-lg":  {
+                                                                                   "fontFamily":  "Plus Jakarta Sans",
+                                                                                   "fontSize":  "48px",
+                                                                                   "fontWeight":  "700",
+                                                                                   "lineHeight":  "56px",
+                                                                                   "letterSpacing":  "-0.02em"
+                                                                               },
+                                                                "headline-lg":  {
+                                                                                    "fontFamily":  "Plus Jakarta Sans",
+                                                                                    "fontSize":  "32px",
+                                                                                    "fontWeight":  "600",
+                                                                                    "lineHeight":  "40px",
+                                                                                    "letterSpacing":  "-0.01em"
+                                                                                },
+                                                                "headline-md":  {
+                                                                                    "fontFamily":  "Plus Jakarta Sans",
+                                                                                    "fontSize":  "24px",
+                                                                                    "fontWeight":  "600",
+                                                                                    "lineHeight":  "32px"
+                                                                                },
+                                                                "headline-sm":  {
+                                                                                    "fontFamily":  "Plus Jakarta Sans",
+                                                                                    "fontSize":  "18px",
+                                                                                    "fontWeight":  "600",
+                                                                                    "lineHeight":  "28px"
+                                                                                },
+                                                                "label-md":  {
+                                                                                 "fontFamily":  "Inter",
+                                                                                 "fontSize":  "14px",
+                                                                                 "fontWeight":  "500",
+                                                                                 "lineHeight":  "20px"
+                                                                             },
+                                                                "label-sm":  {
+                                                                                 "fontFamily":  "Inter",
+                                                                                 "fontSize":  "12px",
+                                                                                 "fontWeight":  "600",
+                                                                                 "lineHeight":  "16px",
+                                                                                 "letterSpacing":  "0.05em"
+                                                                             }
+                                                            },
+                                             "spacing":  {
+                                                             "container-max":  "1280px",
+                                                             "gutter":  "24px",
+                                                             "margin-desktop":  "32px",
+                                                             "margin-mobile":  "16px",
+                                                             "sidebar-collapsed":  "64px",
+                                                             "sidebar-width":  "240px",
+                                                             "unit":  "4px"
+                                                         },
+                                             "headlineFontFamily":  "Plus Jakarta Sans",
+                                             "bodyFontFamily":  "Inter",
+                                             "labelFontFamily":  "Inter"
+                                         },
+                         "screenInstances":  [
+                                                 {
+                                                     "id":  "05767eaf42174ae49a2f7aaf2770f7ea",
+                                                     "sourceScreen":  "projects/18397254620194841886/screens/05767eaf42174ae49a2f7aaf2770f7ea",
+                                                     "x":  7448,
+                                                     "y":  1140,
+                                                     "width":  1280,
+                                                     "height":  1024
+                                                 },
+                                                 {
+                                                     "id":  "10b213c2111a434789daabb42da807fe",
+                                                     "sourceScreen":  "projects/18397254620194841886/screens/10b213c2111a434789daabb42da807fe",
+                                                     "width":  512,
+                                                     "height":  512
+                                                 },
+                                                 {
+                                                     "id":  "11eeaa329ee945f88cac0b4254c481f8",
+                                                     "sourceScreen":  "projects/18397254620194841886/screens/11eeaa329ee945f88cac0b4254c481f8",
+                                                     "x":  1600,
+                                                     "width":  390,
+                                                     "height":  989
+                                                 },
+                                                 {
+                                                     "id":  "1537995279dd47aea7a92bbe8bf80513",
+                                                     "sourceScreen":  "projects/18397254620194841886/screens/1537995279dd47aea7a92bbe8bf80513",
+                                                     "x":  2688,
+                                                     "y":  2420,
+                                                     "width":  1280,
+                                                     "height":  1024
+                                                 },
+                                                 {
+                                                     "id":  "1d325b5274dd479f8f83c67040b5a8e4",
+                                                     "sourceScreen":  "projects/18397254620194841886/screens/1d325b5274dd479f8f83c67040b5a8e4",
+                                                     "x":  4760,
+                                                     "y":  1140,
+                                                     "width":  1280,
+                                                     "height":  1024
+                                                 },
+                                                 {
+                                                     "id":  "354298260e1242939ff43d46b98b478b",
+                                                     "sourceScreen":  "projects/18397254620194841886/screens/354298260e1242939ff43d46b98b478b",
+                                                     "x":  2508,
+                                                     "width":  390,
+                                                     "height":  884
+                                                 },
+                                                 {
+                                                     "id":  "3574ae54b72444bca8075565d87c3450",
+                                                     "sourceScreen":  "projects/18397254620194841886/screens/3574ae54b72444bca8075565d87c3450",
+                                                     "x":  1344,
+                                                     "y":  6561,
+                                                     "width":  1280,
+                                                     "height":  1097
+                                                 },
+                                                 {
+                                                     "id":  "369931fa5a4a4e74b9f7d35ab428ae19",
+                                                     "sourceScreen":  "projects/18397254620194841886/screens/369931fa5a4a4e74b9f7d35ab428ae19",
+                                                     "x":  1344,
+                                                     "y":  2420,
+                                                     "width":  1280,
+                                                     "height":  1137
+                                                 },
+                                                 {
+                                                     "id":  "3d2a9800164b4d588b2d354bf7ade13e",
+                                                     "sourceScreen":  "projects/18397254620194841886/screens/3d2a9800164b4d588b2d354bf7ade13e",
+                                                     "y":  5421,
+                                                     "width":  390,
+                                                     "height":  884
+                                                 },
+                                                 {
+                                                     "id":  "46b52fe25fea439e8cba0bca6bc19702",
+                                                     "sourceScreen":  "projects/18397254620194841886/screens/46b52fe25fea439e8cba0bca6bc19702",
+                                                     "x":  2962,
+                                                     "width":  390,
+                                                     "height":  1539
+                                                 },
+                                                 {
+                                                     "id":  "49bb1200594147498e342451ba474b9a",
+                                                     "sourceScreen":  "projects/18397254620194841886/screens/49bb1200594147498e342451ba474b9a",
+                                                     "y":  2420,
+                                                     "width":  1280,
+                                                     "height":  1285
+                                                 },
+                                                 {
+                                                     "id":  "a0f7c6b7c4894febbb65b318e7f68904",
+                                                     "sourceScreen":  "projects/18397254620194841886/screens/a0f7c6b7c4894febbb65b318e7f68904",
+                                                     "x":  2054,
+                                                     "width":  390,
+                                                     "height":  1407
+                                                 },
+                                                 {
+                                                     "id":  "assets_21b495c571ae40d1a88f01ec557a2210",
+                                                     "x":  576,
+                                                     "width":  960,
+                                                     "height":  540,
+                                                     "sourceAsset":  "assets/21b495c571ae40d1a88f01ec557a2210",
+                                                     "type":  "DESIGN_SYSTEM_INSTANCE"
+                                                 },
+                                                 {
+                                                     "id":  "assets_3d4b40871ec145edbba671853a529d4b",
+                                                     "x":  576,
+                                                     "y":  1140,
+                                                     "width":  960,
+                                                     "height":  540,
+                                                     "sourceAsset":  "assets/3d4b40871ec145edbba671853a529d4b",
+                                                     "type":  "DESIGN_SYSTEM_INSTANCE"
+                                                 },
+                                                 {
+                                                     "id":  "c115be0560514a90bca93808e6fed577",
+                                                     "sourceScreen":  "projects/18397254620194841886/screens/c115be0560514a90bca93808e6fed577",
+                                                     "x":  6104,
+                                                     "y":  1140,
+                                                     "width":  1280,
+                                                     "height":  1024
+                                                 },
+                                                 {
+                                                     "id":  "c3e368b2-3f31-4319-ac68-d869d353277d",
+                                                     "sourceScreen":  "projects/18397254620194841886/screens/16842847297977877960",
+                                                     "y":  3961,
+                                                     "width":  512,
+                                                     "height":  512,
+                                                     "type":  "SCREEN_INSTANCE"
+                                                 },
+                                                 {
+                                                     "id":  "cf3bbaf169a54773b525e50fd9108e95",
+                                                     "sourceScreen":  "projects/18397254620194841886/screens/cf3bbaf169a54773b525e50fd9108e95",
+                                                     "x":  1920,
+                                                     "y":  3961,
+                                                     "width":  1280,
+                                                     "height":  1024
+                                                 },
+                                                 {
+                                                     "id":  "d658797e019d44559eaa98156cd23bea",
+                                                     "sourceScreen":  "projects/18397254620194841886/screens/d658797e019d44559eaa98156cd23bea",
+                                                     "x":  576,
+                                                     "y":  3961,
+                                                     "width":  1280,
+                                                     "height":  1204
+                                                 },
+                                                 {
+                                                     "id":  "db07cbe3-0f59-405a-bddb-e7fe97d625fa",
+                                                     "sourceScreen":  "projects/18397254620194841886/screens/18086303366476310331",
+                                                     "y":  1140,
+                                                     "width":  512,
+                                                     "height":  512,
+                                                     "type":  "SCREEN_INSTANCE"
+                                                 },
+                                                 {
+                                                     "id":  "fc94ffdcb47d4ce6a9364b1858a77451",
+                                                     "sourceScreen":  "projects/18397254620194841886/screens/fc94ffdcb47d4ce6a9364b1858a77451",
+                                                     "y":  6561,
+                                                     "width":  1280,
+                                                     "height":  1024,
+                                                     "isResized":  true
+                                                 }
+                                             ],
+                         "metadata":  {
+                                          "userRole":  "OWNER"
+                                      }
+                     },
+                     {
+                         "name":  "projects/4138670564634953424",
+                         "title":  "Video Editor Portfolio Home",
+                         "visibility":  "PRIVATE",
+                         "createTime":  "2025-11-24T20:26:17.464185Z",
+                         "updateTime":  "2025-11-24T20:36:02.773532Z",
+                         "projectType":  "TEXT_TO_UI_PRO",
+                         "thumbnailScreenshot":  {
+                                                     "name":  "projects/4138670564634953424/files/415b3256b2f643dd84bb8c2570bfc676",
+                                                     "downloadUrl":  "https://lh3.googleusercontent.com/aida/AP1WRLvRe5JsRK8Jg9zfYwwCyIEIPkkDxVHhoBwycWRBwBs0uqXLvSQ-J-3FrKEDTLJMUwh_KCbS1tCRw6Tw_mINOz22cGqAGSuNJmURgc338McVZFJirwAZkWynUmedJHADdVrzPt3eAnKWn6dQV8ItU9IqCrCuVk0_EbdoMrg6F_6H37syHg7NoWQLtW4RD8cBsCaF6GeZxCzXFiU0QmxB3g_SdfTjovwiq9wtCalZyEc27vvbP-O5Su62Eeg"
+                                                 },
+                         "origin":  "STITCH",
+                         "deviceType":  "DESKTOP",
+                         "designTheme":  {
+                                             "colorMode":  "DARK",
+                                             "font":  "INTER",
+                                             "roundness":  "ROUND_EIGHT",
+                                             "customColor":  "#1313ec",
+                                             "saturation":  3
+                                         },
+                         "screenInstances":  [
+                                                 {
+                                                     "id":  "1caeccfd30394737a3648d85666ebc59",
+                                                     "sourceScreen":  "projects/4138670564634953424/screens/1caeccfd30394737a3648d85666ebc59",
+                                                     "y":  3807,
+                                                     "width":  1280,
+                                                     "height":  1798
+                                                 },
+                                                 {
+                                                     "id":  "6a3a5732-66b4-4f3a-97be-6033dab57994",
+                                                     "sourceScreen":  "projects/4138670564634953424/screens/3176526071257758636",
+                                                     "width":  768,
+                                                     "height":  1376
+                                                 },
+                                                 {
+                                                     "id":  "fd6cdc5930ce4e539b85f7873e796ad6",
+                                                     "sourceScreen":  "projects/4138670564634953424/screens/fd6cdc5930ce4e539b85f7873e796ad6",
+                                                     "y":  1632,
+                                                     "width":  1280,
+                                                     "height":  1919
+                                                 }
+                                             ],
+                         "metadata":  {
+                                          "userRole":  "OWNER"
+                                      }
+                     }
+                 ]
+}

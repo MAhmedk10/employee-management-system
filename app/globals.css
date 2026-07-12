@@ -1,26 +1,165 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ──────────────────────────────────────────────
+   Linkage Digital — Design Tokens
+   Source: Stitch project/1145583925317207266
+   Screen: Admin Portal Login - Refined
+   ────────────────────────────────────────────── */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Fonts */
+  --font-sans:     var(--font-inter);
+  --font-headline: var(--font-space-grotesk);
+  --font-mono:     var(--font-jetbrains-mono);
+
+  /* Color tokens — Login Page */
+  --color-background:               #FAFAFB;
+  --color-surface:                  #FFFFFF;
+  --color-surface-container:        #F8FAFC;
+  --color-surface-container-lowest: #FFFFFF;
+  --color-surface-container-highest:#DCE2F3;
+  --color-on-surface:               #0F172A;
+  --color-on-surface-variant:       #64748B;
+  --color-outline:                  #94A3B8;
+  --color-outline-variant:          #E2E8F0;
+  --color-primary:                  #0F172A;
+  --color-on-primary:               #FFFFFF;
+  --color-secondary:                #2E9BF0;
+  --color-on-secondary:             #FFFFFF;
+  --color-error:                    #EF4444;
+  --color-error-container:          #FEE2E2;
+  --color-on-error-container:       #93000A;
+  --color-brand-start:              #2E9BF0;
+  --color-brand-end:                #9B30E0;
+  --color-inverse-surface:          #2A313D;
+  --color-inverse-on-surface:       #EBF1FF;
+
+  /* Color tokens — Dashboard (merged from screen 2b77c7b11fd94f60ada1d40e4add3eb6) */
+  --color-surface-container-low:    #F0F3FF;
+  --color-surface-container-high:   #E2E8F8;
+  --color-surface-variant:          #DCE2F3;
+  --color-secondary-container:      #43A9FF;
+  --color-on-secondary-container:   #003C64;
+  --color-on-surface-variant-dark:  #47464B;
+
+  /* Spacing scale */
+  --spacing-xs:    4px;
+  --spacing-sm:    8px;
+  --spacing-md:    16px;
+  --spacing-lg:    24px;
+  --spacing-xl:    40px;
+  --spacing-gutter:24px;
+  --spacing-margin:32px;
+
+  /* Border radius */
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --radius-full:9999px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+
+/* ── Global resets ────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-on-surface);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ── Gradient button ─────────────────────────── */
+.gradient-btn {
+  background: linear-gradient(135deg, #2E9BF0 0%, #9B30E0 100%);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gradient-btn:hover:not(:disabled) {
+  filter: brightness(1.07);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(46, 155, 240, 0.30);
+}
+
+.gradient-btn:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+
+.gradient-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+/* ── Input focus ring ────────────────────────── */
+.input-wrapper {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input-wrapper:focus-within {
+  border-color: #2E9BF0 !important;
+  box-shadow: 0 0 0 3px rgba(46, 155, 240, 0.10);
+  transform: translateY(-1px);
+}
+
+/* ── Circuit line SVGs (background motif) ────── */
+.circuit-line {
+  position: fixed;
+  opacity: 0.035;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Spinning loader ─────────────────────────── */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 0.8s linear infinite;
+}
+
+/* ── Dashboard: sidebar transition ───────────── */
+.sidebar-transition {
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              margin 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Dashboard: gradient accent ──────────────── */
+.gradient-accent {
+  background: linear-gradient(135deg, #2E9BF0 0%, #9B30E0 100%);
+}
+
+/* ── Dashboard: card shadow ──────────────────── */
+.card-shadow {
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+/* ── Dashboard: custom scrollbar ─────────────── */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #E5E7EB;
+  border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #CBD5E1;
 }
