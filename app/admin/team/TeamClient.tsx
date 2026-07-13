@@ -772,8 +772,11 @@ function AddEmployeeModal({
   onCreated: () => void
 }) {
   const [form, setForm] = useState<EmployeeFormValues>(emptyForm)
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [photoWarning, setPhotoWarning] = useState<string | null>(null)
   const [credentials, setCredentials] = useState<{
     employeeCode: string
     tempPassword: string
@@ -781,6 +784,13 @@ function AddEmployeeModal({
 
   function update(key: keyof EmployeeFormValues, value: string) {
     setForm((f) => ({ ...f, [key]: value }))
+  }
+
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPhotoFile(file)
+    setPhotoPreview(URL.createObjectURL(file))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -803,21 +813,51 @@ function AddEmployeeModal({
     }
 
     setSubmitting(true)
-    const res = await createEmployee({
-      fullName: form.fullName.trim(),
-      fatherName: form.fatherName.trim(),
-      cnic: form.cnic.trim(),
-      salary,
-      roleTitle: form.roleTitle.trim(),
-      monthlyLeaveBalance: leave,
-    })
-    setSubmitting(false)
+    try {
+      const res = await createEmployee({
+        fullName: form.fullName.trim(),
+        fatherName: form.fatherName.trim(),
+        cnic: form.cnic.trim(),
+        salary,
+        roleTitle: form.roleTitle.trim(),
+        monthlyLeaveBalance: leave,
+      })
 
-    if (!res.success) {
-      setError(res.error ?? 'Failed to create employee.')
-      return
+      if (!res.success) {
+        setError(res.error ?? 'Failed to create employee.')
+        setSubmitting(false)
+        return
+      }
+
+      // The employee now exists. If a photo was chosen, upload it and attach
+      // it to the record. A photo failure must not lose the created employee,
+      // so we surface it as a non-blocking warning on the credentials screen.
+      if (photoFile) {
+        try {
+          const profilePhotoUrl = await uploadEmployeePhoto(photoFile, res.employeeCode!)
+          const updateRes = await updateEmployee(res.employeeId!, {
+            fullName: form.fullName.trim(),
+            fatherName: form.fatherName.trim(),
+            cnic: form.cnic.trim(),
+            salary,
+            roleTitle: form.roleTitle.trim(),
+            monthlyLeaveBalance: leave,
+            profilePhotoUrl,
+          })
+          if (!updateRes.success) {
+            setPhotoWarning('Employee created, but the photo could not be saved. You can add it later via Edit.')
+          }
+        } catch {
+          setPhotoWarning('Employee created, but the photo upload failed. You can add it later via Edit.')
+        }
+      }
+
+      setSubmitting(false)
+      setCredentials({ employeeCode: res.employeeCode!, tempPassword: res.tempPassword! })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong while creating the employee.')
+      setSubmitting(false)
     }
-    setCredentials({ employeeCode: res.employeeCode!, tempPassword: res.tempPassword! })
   }
 
   // After success we show the generated credentials the admin must share.
@@ -848,6 +888,14 @@ function AddEmployeeModal({
           <p className="text-[13px]" style={{ color: '#64748B' }}>
             The employee will be prompted to change this password on first login.
           </p>
+          {photoWarning && (
+            <div
+              className="rounded-lg px-4 py-3 text-sm"
+              style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
+            >
+              {photoWarning}
+            </div>
+          )}
           <button
             onClick={onCreated}
             className="w-full py-2.5 gradient-accent text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-all shadow-md"
@@ -862,6 +910,35 @@ function AddEmployeeModal({
   return (
     <ModalShell title="Add Employee" subtitle="Create a new employee profile and login account." onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Photo */}
+        <div className="flex items-center gap-4">
+          {photoPreview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={photoPreview || '/placeholder.svg'}
+              alt={form.fullName || 'New employee'}
+              className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-sm"
+            />
+          ) : (
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-lg border-2 border-white shadow-sm"
+              style={{ background: '#E2E8F8', color: '#0F172A' }}
+            >
+              {form.fullName.trim() ? getInitials(form.fullName) : '+'}
+            </div>
+          )}
+          <label className="cursor-pointer">
+            <span
+              className="inline-flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-semibold hover:bg-[#F0F3FF] transition-all"
+              style={{ borderColor: '#E2E8F0', color: '#0F172A' }}
+            >
+              <span className="material-symbols-outlined text-[18px]">photo_camera</span>
+              {photoPreview ? 'Change Photo' : 'Upload Photo'}
+            </span>
+            <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+          </label>
+        </div>
+
         <FormField label="Full Name">
           <input
             className={inputClass}
