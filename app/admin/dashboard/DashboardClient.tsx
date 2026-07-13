@@ -259,24 +259,20 @@ export default function DashboardClient({
               <button
                 type="button"
                 onClick={() => sidebarCollapsed && setSidebarCollapsed(false)}
-                className={`w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg gradient-accent ${
+                className={`w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg bg-white border overflow-hidden ${
                   sidebarCollapsed ? 'lg:cursor-pointer' : 'cursor-default'
                 }`}
+                style={{ borderColor: '#E2E8F0' }}
                 aria-label={sidebarCollapsed ? 'Expand sidebar' : undefined}
                 title={sidebarCollapsed ? 'Expand sidebar' : undefined}
                 tabIndex={sidebarCollapsed ? 0 : -1}
               >
-                <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                  <rect x="3" y="3" width="16" height="16" rx="2" fill="white" fillOpacity="0.2" />
-                  <rect x="6" y="6" width="10" height="10" rx="1.5" fill="white" fillOpacity="0.9" />
-                  <rect x="9" y="9" width="4" height="4" rx="0.5" fill="url(#sg)" />
-                  <defs>
-                    <linearGradient id="sg" x1="9" y1="9" x2="13" y2="13" gradientUnits="userSpaceOnUse">
-                      <stop stopColor="#2E9BF0" />
-                      <stop offset="1" stopColor="#9B30E0" />
-                    </linearGradient>
-                  </defs>
-                </svg>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/brand/linkage-icon.png"
+                  alt="The Linkage Digital"
+                  className="w-7 h-7 object-contain"
+                />
               </button>
               {/* Wordmark + subtitle — smoothly collapses to zero width, no clip */}
               <div

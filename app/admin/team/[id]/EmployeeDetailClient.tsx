@@ -3,9 +3,9 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { createEmployee, updateEmployee, setEmployeeStatus } from '@/app/actions/employees'
+import { updateEmployee, setEmployeeStatus } from '@/app/actions/employees'
 import { uploadEmployeePhoto } from '@/lib/uploadEmployeePhoto'
-import type { TeamEmployee } from './page'
+import type { DetailEmployee, AttendanceRecord } from './page'
 
 const PAGE_SIZE = 10
 
@@ -19,38 +19,51 @@ function getInitials(name: string) {
     .toUpperCase()
 }
 
-function statusClasses(status: TeamEmployee['status']) {
-  return status === 'active'
-    ? 'bg-emerald-100 text-emerald-700'
-    : 'bg-slate-200 text-slate-600'
+function formatDate(dateStr: string) {
+  return new Date(`${dateStr}T00:00:00`).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
 }
 
-// ── Avatar ────────────────────────────────────────────────────
-function Avatar({
-  photoUrl,
-  name,
-}: {
-  photoUrl: string | null
-  name: string
-}) {
-  return photoUrl ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={photoUrl || '/placeholder.svg'}
-      alt={name}
-      className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm flex-shrink-0"
-    />
-  ) : (
-    <div
-      className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 border-white shadow-sm flex-shrink-0"
-      style={{ background: '#E2E8F8', color: '#0F172A' }}
-    >
-      {getInitials(name)}
-    </div>
-  )
+function formatTime(ts: string | null) {
+  if (!ts) return '—'
+  return new Date(ts).toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
-// ── Employee form fields (shared by Add + Edit) ───────────────
+function hoursWorked(inTs: string | null, outTs: string | null) {
+  if (!inTs || !outTs) return '—'
+  const diffMs = new Date(outTs).getTime() - new Date(inTs).getTime()
+  if (diffMs <= 0) return '—'
+  const totalMinutes = Math.round(diffMs / 60000)
+  const h = Math.floor(totalMinutes / 60)
+  const m = totalMinutes % 60
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}h`
+}
+
+const STATUS_META: Record<
+  AttendanceRecord['computed_status'],
+  { label: string; bg: string; color: string; dot: string }
+> = {
+  present: { label: 'Present', bg: '#DCFCE7', color: '#15803D', dot: '#22C55E' },
+  late: { label: 'Late', bg: '#FEF3C7', color: '#B45309', dot: '#F59E0B' },
+  absent: { label: 'Absent', bg: '#FEE2E2', color: '#B91C1C', dot: '#EF4444' },
+  on_leave: { label: 'On Leave', bg: '#DBEAFE', color: '#1D4ED8', dot: '#3B82F6' },
+  pending: { label: 'Pending', bg: '#F1F5F9', color: '#64748B', dot: '#94A3B8' },
+}
+
+function attendanceSource(row: AttendanceRecord): 'self' | 'admin' | null {
+  const marked = row.clock_in_marked_by ?? row.clock_out_marked_by
+  if (marked) return marked
+  if (row.recorded_by_admin_id) return 'admin'
+  return null
+}
+
+// ── Shared form types (mirrors Team modals) ───────────────────
 interface EmployeeFormValues {
   fullName: string
   fatherName: string
@@ -60,22 +73,7 @@ interface EmployeeFormValues {
   monthlyLeaveBalance: string
 }
 
-const emptyForm: EmployeeFormValues = {
-  fullName: '',
-  fatherName: '',
-  cnic: '',
-  salary: '',
-  roleTitle: '',
-  monthlyLeaveBalance: '',
-}
-
-function FormField({
-  label,
-  children,
-}: {
-  label: string
-  children: React.ReactNode
-}) {
+function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
       <span
@@ -93,45 +91,52 @@ const inputClass =
   'w-full px-3 py-2 border rounded-lg text-sm outline-none transition-all focus:ring-2 focus:ring-[#2E9BF0]/20 focus:border-[#2E9BF0]'
 const inputStyle = { borderColor: '#E2E8F0', color: '#0F172A' } as const
 
-// ── Main Team Client ──────────────────────────────────────────
+// ── Main Detail Client ────────────────────────────────────────
 interface Props {
   adminName: string
   adminPhotoUrl: string | null
-  initialEmployees: TeamEmployee[]
-  initialAddOpen?: boolean
+  employee: DetailEmployee
+  attendance: AttendanceRecord[]
 }
 
-export default function TeamClient({
+export default function EmployeeDetailClient({
   adminName,
   adminPhotoUrl,
-  initialEmployees,
-  initialAddOpen = false,
+  employee,
+  attendance,
 }: Props) {
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
 
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [editOpen, setEditOpen] = useState(false)
+  const [togglingStatus, setTogglingStatus] = useState(false)
+
+  const [monthFilter, setMonthFilter] = useState<'all' | string>('all')
   const [page, setPage] = useState(1)
 
-  // Modals
-  const [addOpen, setAddOpen] = useState(initialAddOpen)
-  const [editTarget, setEditTarget] = useState<TeamEmployee | null>(null)
+  // ── Available months (from attendance data) ────────────────
+  const monthOptions = useMemo(() => {
+    const set = new Map<string, string>()
+    for (const row of attendance) {
+      const key = row.date.slice(0, 7) // YYYY-MM
+      if (!set.has(key)) {
+        const label = new Date(`${row.date.slice(0, 7)}-01T00:00:00`).toLocaleDateString('en-US', {
+          month: 'long',
+          year: 'numeric',
+        })
+        set.set(key, label)
+      }
+    }
+    return Array.from(set.entries()) // [key, label]
+  }, [attendance])
 
-  // ── Filtering ──────────────────────────────────────────────
+  // ── Filtering + pagination ─────────────────────────────────
   const filtered = useMemo(() => {
-    return initialEmployees.filter((emp) => {
-      const matchSearch =
-        search.trim() === '' ||
-        emp.full_name.toLowerCase().includes(search.toLowerCase()) ||
-        emp.employee_code.toLowerCase().includes(search.toLowerCase()) ||
-        (emp.role_title ?? '').toLowerCase().includes(search.toLowerCase())
-      const matchStatus = statusFilter === 'all' || emp.status === statusFilter
-      return matchSearch && matchStatus
-    })
-  }, [initialEmployees, search, statusFilter])
+    if (monthFilter === 'all') return attendance
+    return attendance.filter((r) => r.date.slice(0, 7) === monthFilter)
+  }, [attendance, monthFilter])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
@@ -147,12 +152,11 @@ export default function TeamClient({
   }
 
   // ── Status toggle ──────────────────────────────────────────
-  const [togglingId, setTogglingId] = useState<string | null>(null)
-  async function handleToggleStatus(emp: TeamEmployee) {
-    setTogglingId(emp.id)
-    const next = emp.status === 'active' ? 'inactive' : 'active'
-    const res = await setEmployeeStatus(emp.id, next)
-    setTogglingId(null)
+  async function handleToggleStatus() {
+    setTogglingStatus(true)
+    const next = employee.status === 'active' ? 'inactive' : 'active'
+    const res = await setEmployeeStatus(employee.id, next)
+    setTogglingStatus(false)
     if (!res.success) {
       alert(res.error ?? 'Failed to update status')
       return
@@ -171,6 +175,8 @@ export default function TeamClient({
     { label: 'Leave', icon: 'calendar_today', href: '/admin/leave', active: false },
     { label: 'Settings', icon: 'settings', href: '/admin/settings', active: false },
   ]
+
+  const isActive = employee.status === 'active'
 
   return (
     <>
@@ -387,25 +393,14 @@ export default function TeamClient({
                   menu
                 </span>
               </button>
-              <div className="relative hidden sm:block">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="material-symbols-outlined text-[20px]" style={{ color: '#94A3B8' }}>
-                    search
-                  </span>
-                </span>
-                <input
-                  type="text"
-                  placeholder="Global search…"
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value)
-                    setPage(1)
-                  }}
-                  className="block w-48 md:w-64 pl-10 pr-3 py-1.5 border rounded-full text-sm outline-none transition-all focus:ring-2"
-                  style={{ borderColor: '#E2E8F0', color: '#0F172A', fontFamily: 'var(--font-inter)' }}
-                  id="team-search"
-                />
-              </div>
+              <a
+                href="/admin/team"
+                className="flex items-center gap-2 text-sm font-medium px-2 py-1.5 rounded-lg hover:bg-[#F0F3FF] transition-colors"
+                style={{ color: '#64748B' }}
+              >
+                <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+                Back to Team
+              </a>
             </div>
 
             <div className="flex items-center gap-2 md:gap-4">
@@ -447,90 +442,276 @@ export default function TeamClient({
 
           {/* ── Main canvas ── */}
           <main className="p-4 md:p-8 flex-1">
-            {/* Page header */}
-            <section className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-              <div>
-                <h2
-                  className="text-2xl md:text-3xl font-bold tracking-tight"
-                  style={{ color: '#0F172A', fontFamily: 'var(--font-space-grotesk)' }}
-                >
-                  Team
-                </h2>
-                <p className="text-sm mt-1" style={{ color: '#64748B' }}>
-                  Manage your employees and workforce structure.
-                </p>
-              </div>
-              <button
-                onClick={() => setAddOpen(true)}
-                className="px-5 py-2.5 gradient-accent text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-md"
-              >
-                <span className="material-symbols-outlined text-[18px]">person_add</span>
-                Add Employee
-              </button>
-            </section>
-
-            {/* Filter bar */}
+            {/* Profile header card */}
             <section
-              className="bg-white border rounded-xl card-shadow px-4 py-4 mb-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-4"
+              className="bg-white border rounded-xl card-shadow p-5 md:p-6 mb-6 flex flex-col md:flex-row md:items-center gap-5"
               style={{ borderColor: '#E2E8F0' }}
             >
-              <div className="relative flex-1">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="material-symbols-outlined text-[20px]" style={{ color: '#94A3B8' }}>
-                    filter_list
-                  </span>
-                </span>
-                <input
-                  type="text"
-                  placeholder="Filter by name, ID or role…"
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value)
-                    setPage(1)
-                  }}
-                  className="w-full pl-10 pr-3 py-2 border rounded-lg text-sm outline-none transition-all focus:ring-2 focus:ring-[#2E9BF0]/20 focus:border-[#2E9BF0]"
-                  style={{ borderColor: '#E2E8F0', color: '#0F172A' }}
+              {/* Avatar with status dot */}
+              <div className="relative flex-shrink-0">
+                {employee.profile_photo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={employee.profile_photo_url || '/placeholder.svg'}
+                    alt={employee.full_name}
+                    className="w-20 h-20 rounded-xl object-cover border-2 border-white shadow-sm"
+                  />
+                ) : (
+                  <div
+                    className="w-20 h-20 rounded-xl flex items-center justify-center font-bold text-2xl border-2 border-white shadow-sm"
+                    style={{ background: '#E2E8F8', color: '#0F172A' }}
+                  >
+                    {getInitials(employee.full_name)}
+                  </div>
+                )}
+                <span
+                  className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white"
+                  style={{ backgroundColor: isActive ? '#22C55E' : '#94A3B8' }}
+                  aria-hidden="true"
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium" style={{ color: '#64748B' }}>
-                  Status:
-                </span>
+
+              {/* Identity */}
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <h2
+                    className="text-xl md:text-2xl font-bold tracking-tight"
+                    style={{ color: '#0F172A', fontFamily: 'var(--font-space-grotesk)' }}
+                  >
+                    {employee.full_name}
+                  </h2>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase ${
+                      isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'
+                    }`}
+                  >
+                    {employee.status}
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                  <span
+                    className="inline-flex items-center px-2 py-0.5 rounded-md text-[12px] font-semibold"
+                    style={{
+                      backgroundColor: '#E2E8F8',
+                      color: '#0F172A',
+                      fontFamily: 'var(--font-jetbrains-mono)',
+                    }}
+                  >
+                    {employee.employee_code}
+                  </span>
+                  <span className="text-sm" style={{ color: '#64748B' }}>
+                    {employee.role_title ?? 'No role assigned'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={() => setEditOpen(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-semibold hover:bg-[#F0F3FF] transition-all"
+                  style={{ borderColor: '#E2E8F0', color: '#0F172A' }}
+                >
+                  <span className="material-symbols-outlined text-[18px]">edit</span>
+                  Edit
+                </button>
+                <button
+                  onClick={handleToggleStatus}
+                  disabled={togglingStatus}
+                  className="inline-flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-semibold transition-all disabled:opacity-60"
+                  style={{
+                    borderColor: isActive ? '#FECACA' : '#BBF7D0',
+                    color: isActive ? '#EF4444' : '#10B981',
+                    backgroundColor: isActive ? '#FEF2F2' : '#F0FDF4',
+                  }}
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {togglingStatus ? 'hourglass_empty' : isActive ? 'person_off' : 'person'}
+                  </span>
+                  {isActive ? 'Deactivate' : 'Activate'}
+                </button>
+              </div>
+            </section>
+
+            {/* Info cards */}
+            <section className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+              {/* Personal Info */}
+              <div
+                className="bg-white border rounded-xl card-shadow p-5"
+                style={{ borderColor: '#E2E8F0' }}
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="material-symbols-outlined text-[20px]" style={{ color: '#2E9BF0' }}>
+                    person
+                  </span>
+                  <h3
+                    className="text-[12px] font-bold uppercase tracking-widest"
+                    style={{ color: '#2E9BF0' }}
+                  >
+                    Personal Info
+                  </h3>
+                </div>
+                <dl className="space-y-4">
+                  <div>
+                    <dt className="text-[11px] uppercase tracking-wide font-semibold" style={{ color: '#94A3B8' }}>
+                      Father Name
+                    </dt>
+                    <dd className="text-sm font-semibold mt-0.5" style={{ color: '#0F172A' }}>
+                      {employee.father_name}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] uppercase tracking-wide font-semibold" style={{ color: '#94A3B8' }}>
+                      CNIC
+                    </dt>
+                    <dd
+                      className="text-sm font-semibold mt-0.5"
+                      style={{ color: '#0F172A', fontFamily: 'var(--font-jetbrains-mono)' }}
+                    >
+                      {employee.cnic}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+
+              {/* Employment */}
+              <div
+                className="bg-white border rounded-xl card-shadow p-5"
+                style={{ borderColor: '#E2E8F0' }}
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="material-symbols-outlined text-[20px]" style={{ color: '#2E9BF0' }}>
+                    work
+                  </span>
+                  <h3
+                    className="text-[12px] font-bold uppercase tracking-widest"
+                    style={{ color: '#2E9BF0' }}
+                  >
+                    Employment
+                  </h3>
+                </div>
+                <dl className="space-y-4">
+                  <div>
+                    <dt className="text-[11px] uppercase tracking-wide font-semibold" style={{ color: '#94A3B8' }}>
+                      Role
+                    </dt>
+                    <dd className="text-sm font-semibold mt-0.5" style={{ color: '#0F172A' }}>
+                      {employee.role_title ?? '—'}
+                    </dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <dt className="text-[11px] uppercase tracking-wide font-semibold" style={{ color: '#94A3B8' }}>
+                        Code
+                      </dt>
+                      <dd
+                        className="text-sm font-semibold mt-0.5"
+                        style={{ color: '#0F172A', fontFamily: 'var(--font-jetbrains-mono)' }}
+                      >
+                        {employee.employee_code}
+                      </dd>
+                    </div>
+                    <div className="text-right">
+                      <dt className="text-[11px] uppercase tracking-wide font-semibold" style={{ color: '#94A3B8' }}>
+                        Status
+                      </dt>
+                      <dd
+                        className="text-sm font-bold mt-0.5 capitalize"
+                        style={{ color: isActive ? '#15803D' : '#64748B' }}
+                      >
+                        {employee.status}
+                      </dd>
+                    </div>
+                  </div>
+                </dl>
+              </div>
+
+              {/* Leave Balance */}
+              <div
+                className="bg-white border rounded-xl card-shadow p-5"
+                style={{ borderColor: '#E2E8F0' }}
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="material-symbols-outlined text-[20px]" style={{ color: '#2E9BF0' }}>
+                    event_available
+                  </span>
+                  <h3
+                    className="text-[12px] font-bold uppercase tracking-widest"
+                    style={{ color: '#2E9BF0' }}
+                  >
+                    Leave Balance
+                  </h3>
+                </div>
+                <div className="flex flex-col items-center justify-center text-center py-2">
+                  <div className="flex items-baseline gap-1.5">
+                    <span
+                      className="text-4xl font-bold"
+                      style={{ color: '#0F172A', fontFamily: 'var(--font-space-grotesk)' }}
+                    >
+                      {employee.monthly_leave_balance}
+                    </span>
+                    <span className="text-sm font-semibold" style={{ color: '#64748B' }}>
+                      days
+                    </span>
+                  </div>
+                  <p className="text-[13px] mt-1" style={{ color: '#64748B' }}>
+                    Monthly Leave Remaining
+                  </p>
+                  <div className="w-full h-1.5 rounded-full mt-4 gradient-accent" style={{ opacity: 0.85 }} />
+                </div>
+              </div>
+            </section>
+
+            {/* Attendance History */}
+            <section
+              className="bg-white border rounded-xl card-shadow overflow-hidden"
+              style={{ borderColor: '#E2E8F0' }}
+            >
+              <div
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b"
+                style={{ borderColor: '#E2E8F0' }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[20px]" style={{ color: '#2E9BF0' }}>
+                    history
+                  </span>
+                  <h3
+                    className="text-base font-bold"
+                    style={{ color: '#0F172A', fontFamily: 'var(--font-space-grotesk)' }}
+                  >
+                    Attendance History
+                  </h3>
+                </div>
                 <div className="select-wrapper">
                   <select
-                    value={statusFilter}
+                    value={monthFilter}
                     onChange={(e) => {
-                      setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')
+                      setMonthFilter(e.target.value)
                       setPage(1)
                     }}
-                    aria-label="Filter by status"
+                    aria-label="Filter attendance by month"
                   >
-                    <option value="all">All Members</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
+                    <option value="all">All records</option>
+                    {monthOptions.map(([key, label]) => (
+                      <option key={key} value={key}>
+                        {label}
+                      </option>
+                    ))}
                   </select>
                   <span className="material-symbols-outlined text-[20px] select-chevron" aria-hidden="true">
                     expand_more
                   </span>
                 </div>
               </div>
-            </section>
 
-            {/* Team table */}
-            <section
-              className="bg-white border rounded-xl card-shadow overflow-hidden"
-              style={{ borderColor: '#E2E8F0' }}
-            >
               <div className="overflow-x-auto custom-scrollbar">
-                <table className="w-full text-left border-collapse" style={{ minWidth: 700 }}>
+                <table className="w-full text-left border-collapse" style={{ minWidth: 720 }}>
                   <thead>
                     <tr style={{ backgroundColor: 'rgba(231,238,254,0.3)', borderBottom: '1px solid #E2E8F0' }}>
-                      {['Employee', 'Role', 'Leave Balance', 'Status', 'Actions'].map((h) => (
+                      {['Date', 'Clock In', 'Clock Out', 'Hours Worked', 'Status', 'Source'].map((h) => (
                         <th
                           key={h}
-                          className={`px-6 py-4 text-[11px] uppercase tracking-widest font-semibold ${
-                            h === 'Actions' ? 'text-right' : ''
-                          }`}
+                          className="px-6 py-4 text-[11px] uppercase tracking-widest font-semibold"
                           style={{ color: '#64748B', fontFamily: 'var(--font-inter)' }}
                         >
                           {h}
@@ -541,127 +722,93 @@ export default function TeamClient({
                   <tbody>
                     {pageRows.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-6 py-12 text-center text-sm" style={{ color: '#64748B' }}>
-                          {initialEmployees.length === 0
-                            ? 'No employees yet. Click “Add Employee” to create the first one.'
-                            : 'No employees match the current filters.'}
+                        <td colSpan={6} className="px-6 py-12 text-center text-sm" style={{ color: '#64748B' }}>
+                          {attendance.length === 0
+                            ? 'No attendance records yet for this employee.'
+                            : 'No records match the selected month.'}
                         </td>
                       </tr>
                     ) : (
-                      pageRows.map((emp) => (
-                        <tr
-                          key={emp.id}
-                          className="transition-colors group cursor-pointer"
-                          style={{ borderBottom: '1px solid rgba(226,232,240,0.5)' }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F0F3FF')}
-                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                          onClick={() => router.push(`/admin/team/${emp.id}`)}
-                          role="link"
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') router.push(`/admin/team/${emp.id}`)
-                          }}
-                          aria-label={`View ${emp.full_name}`}
-                        >
-                          {/* Employee */}
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <Avatar photoUrl={emp.profile_photo_url} name={emp.full_name} />
-                              <div>
-                                <p className="font-semibold text-sm" style={{ color: '#0F172A' }}>
-                                  {emp.full_name}
-                                </p>
-                                <p
-                                  className="text-[12px]"
-                                  style={{ color: '#64748B', fontFamily: 'var(--font-jetbrains-mono)' }}
+                      pageRows.map((row) => {
+                        const meta = STATUS_META[row.computed_status]
+                        const source = attendanceSource(row)
+                        return (
+                          <tr
+                            key={row.id}
+                            className="transition-colors"
+                            style={{ borderBottom: '1px solid rgba(226,232,240,0.5)' }}
+                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F8FAFC')}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                          >
+                            <td className="px-6 py-4 text-sm font-medium" style={{ color: '#0F172A' }}>
+                              {formatDate(row.date)}
+                            </td>
+                            <td
+                              className="px-6 py-4 text-sm"
+                              style={{ color: '#0F172A', fontFamily: 'var(--font-jetbrains-mono)' }}
+                            >
+                              {row.is_leave ? '—' : formatTime(row.clock_in_at)}
+                            </td>
+                            <td
+                              className="px-6 py-4 text-sm"
+                              style={{ color: '#0F172A', fontFamily: 'var(--font-jetbrains-mono)' }}
+                            >
+                              {row.is_leave ? '—' : formatTime(row.clock_out_at)}
+                            </td>
+                            <td
+                              className="px-6 py-4 text-sm font-bold"
+                              style={{ color: '#0F172A', fontFamily: 'var(--font-jetbrains-mono)' }}
+                            >
+                              {row.is_leave ? '—' : hoursWorked(row.clock_in_at, row.clock_out_at)}
+                            </td>
+                            <td className="px-6 py-4">
+                              <span
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold"
+                                style={{ backgroundColor: meta.bg, color: meta.color }}
+                              >
+                                <span
+                                  className="w-1.5 h-1.5 rounded-full"
+                                  style={{ backgroundColor: meta.dot }}
+                                />
+                                {meta.label}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              {source ? (
+                                <span
+                                  className="inline-flex items-center gap-1.5 text-[12px] font-medium"
+                                  style={{ color: '#64748B' }}
                                 >
-                                  {emp.employee_code}
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                          {/* Role */}
-                          <td className="px-6 py-4 text-sm" style={{ color: '#0F172A' }}>
-                            {emp.role_title ?? '—'}
-                          </td>
-                          {/* Leave balance */}
-                          <td className="px-6 py-4">
-                            <span
-                              className="inline-flex items-center px-3 py-1 rounded-lg text-[13px] font-semibold"
-                              style={{
-                                backgroundColor: '#E2E8F8',
-                                color: '#0F172A',
-                                fontFamily: 'var(--font-jetbrains-mono)',
-                              }}
-                            >
-                              {emp.monthly_leave_balance} days
-                            </span>
-                          </td>
-                          {/* Status */}
-                          <td className="px-6 py-4">
-                            <span
-                              className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold tracking-wide capitalize ${statusClasses(
-                                emp.status
-                              )}`}
-                            >
-                              {emp.status}
-                            </span>
-                          </td>
-                          {/* Actions */}
-                          <td className="px-6 py-4">
-                            <div className="flex items-center justify-end gap-1">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setEditTarget(emp)
-                                }}
-                                className="p-2 rounded-lg hover:bg-[#E2E8F8] transition-colors"
-                                style={{ color: '#64748B' }}
-                                title="Edit employee"
-                                aria-label={`Edit ${emp.full_name}`}
-                              >
-                                <span className="material-symbols-outlined text-[20px]">edit</span>
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleToggleStatus(emp)
-                                }}
-                                disabled={togglingId === emp.id}
-                                className="p-2 rounded-lg hover:bg-[#E2E8F8] transition-colors disabled:opacity-50"
-                                style={{ color: emp.status === 'active' ? '#EF4444' : '#10B981' }}
-                                title={emp.status === 'active' ? 'Deactivate employee' : 'Activate employee'}
-                                aria-label={
-                                  emp.status === 'active'
-                                    ? `Deactivate ${emp.full_name}`
-                                    : `Activate ${emp.full_name}`
-                                }
-                              >
-                                <span className="material-symbols-outlined text-[20px]">
-                                  {togglingId === emp.id
-                                    ? 'hourglass_empty'
-                                    : emp.status === 'active'
-                                      ? 'person_off'
-                                      : 'person'}
+                                  <span className="material-symbols-outlined text-[16px]">
+                                    {source === 'admin' ? 'admin_panel_settings' : 'smartphone'}
+                                  </span>
+                                  {source === 'admin' ? 'Admin' : 'Self'}
                                 </span>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
+                              ) : (
+                                <span className="text-sm" style={{ color: '#94A3B8' }}>
+                                  —
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })
                     )}
                   </tbody>
                 </table>
               </div>
 
-              {/* Table footer / pagination */}
+              {/* Footer / pagination */}
               <div
                 className="px-6 py-4 border-t flex justify-between items-center"
                 style={{ borderColor: '#E2E8F0', backgroundColor: '#FAFAFB' }}
               >
                 <p className="text-sm" style={{ color: '#64748B' }}>
-                  Showing {pageRows.length} of {filtered.length} employee{filtered.length !== 1 ? 's' : ''}
-                  {search || statusFilter !== 'all' ? ' (filtered)' : ''}
+                  {filtered.length === 0
+                    ? 'No records'
+                    : `Showing ${pageStart + 1}–${pageStart + pageRows.length} of ${filtered.length} record${
+                        filtered.length !== 1 ? 's' : ''
+                      }`}
                 </p>
                 <div className="flex items-center gap-2">
                   <button
@@ -692,24 +839,13 @@ export default function TeamClient({
         </div>
       </div>
 
-      {/* ── Add Employee modal ── */}
-      {addOpen && (
-        <AddEmployeeModal
-          onClose={() => setAddOpen(false)}
-          onCreated={() => {
-            setAddOpen(false)
-            router.refresh()
-          }}
-        />
-      )}
-
       {/* ── Edit Employee modal ── */}
-      {editTarget && (
+      {editOpen && (
         <EditEmployeeModal
-          employee={editTarget}
-          onClose={() => setEditTarget(null)}
+          employee={employee}
+          onClose={() => setEditOpen(false)}
           onSaved={() => {
-            setEditTarget(null)
+            setEditOpen(false)
             router.refresh()
           }}
         />
@@ -718,7 +854,7 @@ export default function TeamClient({
   )
 }
 
-// ── Modal shell ───────────────────────────────────────────────
+// ── Modal shell (mirrors Team modal styling) ──────────────────
 function ModalShell({
   title,
   subtitle,
@@ -766,281 +902,9 @@ function ModalShell({
             </span>
           </button>
         </div>
-        <div className="px-6 py-5">{children}</div>
+        <div className="p-6">{children}</div>
       </div>
     </div>
-  )
-}
-
-// ── Add Employee modal ────────────────────────────────────────
-function AddEmployeeModal({
-  onClose,
-  onCreated,
-}: {
-  onClose: () => void
-  onCreated: () => void
-}) {
-  const [form, setForm] = useState<EmployeeFormValues>(emptyForm)
-  const [photoFile, setPhotoFile] = useState<File | null>(null)
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [photoWarning, setPhotoWarning] = useState<string | null>(null)
-  const [credentials, setCredentials] = useState<{
-    employeeCode: string
-    tempPassword: string
-  } | null>(null)
-
-  function update(key: keyof EmployeeFormValues, value: string) {
-    setForm((f) => ({ ...f, [key]: value }))
-  }
-
-  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setPhotoFile(file)
-    setPhotoPreview(URL.createObjectURL(file))
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-
-    const salary = Number(form.salary)
-    const leave = Number(form.monthlyLeaveBalance)
-    if (!form.fullName.trim() || !form.fatherName.trim() || !form.cnic.trim()) {
-      setError('Full name, father name, and CNIC are required.')
-      return
-    }
-    if (Number.isNaN(salary) || salary < 0) {
-      setError('Please enter a valid salary.')
-      return
-    }
-    if (Number.isNaN(leave) || leave < 0) {
-      setError('Please enter a valid leave balance.')
-      return
-    }
-
-    setSubmitting(true)
-    try {
-      const res = await createEmployee({
-        fullName: form.fullName.trim(),
-        fatherName: form.fatherName.trim(),
-        cnic: form.cnic.trim(),
-        salary,
-        roleTitle: form.roleTitle.trim(),
-        monthlyLeaveBalance: leave,
-      })
-
-      if (!res.success) {
-        setError(res.error ?? 'Failed to create employee.')
-        setSubmitting(false)
-        return
-      }
-
-      // The employee now exists. If a photo was chosen, upload it and attach
-      // it to the record. A photo failure must not lose the created employee,
-      // so we surface it as a non-blocking warning on the credentials screen.
-      if (photoFile) {
-        try {
-          const profilePhotoUrl = await uploadEmployeePhoto(photoFile, res.employeeCode!)
-          const updateRes = await updateEmployee(res.employeeId!, {
-            fullName: form.fullName.trim(),
-            fatherName: form.fatherName.trim(),
-            cnic: form.cnic.trim(),
-            salary,
-            roleTitle: form.roleTitle.trim(),
-            monthlyLeaveBalance: leave,
-            profilePhotoUrl,
-          })
-          if (!updateRes.success) {
-            setPhotoWarning('Employee created, but the photo could not be saved. You can add it later via Edit.')
-          }
-        } catch {
-          setPhotoWarning('Employee created, but the photo upload failed. You can add it later via Edit.')
-        }
-      }
-
-      setSubmitting(false)
-      setCredentials({ employeeCode: res.employeeCode!, tempPassword: res.tempPassword! })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong while creating the employee.')
-      setSubmitting(false)
-    }
-  }
-
-  // After success we show the generated credentials the admin must share.
-  if (credentials) {
-    return (
-      <ModalShell
-        title="Employee Created"
-        subtitle="Share these login credentials with the employee. The password will not be shown again."
-        onClose={onCreated}
-      >
-        <div className="space-y-4">
-          <div className="rounded-lg border p-4" style={{ borderColor: '#E2E8F0', backgroundColor: '#F8FAFC' }}>
-            <p className="text-[12px] font-semibold uppercase tracking-wide mb-1" style={{ color: '#64748B' }}>
-              Employee ID
-            </p>
-            <p className="text-base font-bold" style={{ color: '#0F172A', fontFamily: 'var(--font-jetbrains-mono)' }}>
-              {credentials.employeeCode}
-            </p>
-          </div>
-          <div className="rounded-lg border p-4" style={{ borderColor: '#E2E8F0', backgroundColor: '#F8FAFC' }}>
-            <p className="text-[12px] font-semibold uppercase tracking-wide mb-1" style={{ color: '#64748B' }}>
-              Temporary Password
-            </p>
-            <p className="text-base font-bold" style={{ color: '#0F172A', fontFamily: 'var(--font-jetbrains-mono)' }}>
-              {credentials.tempPassword}
-            </p>
-          </div>
-          <p className="text-[13px]" style={{ color: '#64748B' }}>
-            The employee will be prompted to change this password on first login.
-          </p>
-          {photoWarning && (
-            <div
-              className="rounded-lg px-4 py-3 text-sm"
-              style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
-            >
-              {photoWarning}
-            </div>
-          )}
-          <button
-            onClick={onCreated}
-            className="w-full py-2.5 gradient-accent text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-all shadow-md"
-          >
-            Done
-          </button>
-        </div>
-      </ModalShell>
-    )
-  }
-
-  return (
-    <ModalShell title="Add Employee" subtitle="Create a new employee profile and login account." onClose={onClose}>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Photo */}
-        <div className="flex items-center gap-4">
-          {photoPreview ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={photoPreview || '/placeholder.svg'}
-              alt={form.fullName || 'New employee'}
-              className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-sm"
-            />
-          ) : (
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-lg border-2 border-white shadow-sm"
-              style={{ background: '#E2E8F8', color: '#0F172A' }}
-            >
-              {form.fullName.trim() ? getInitials(form.fullName) : '+'}
-            </div>
-          )}
-          <label className="cursor-pointer">
-            <span
-              className="inline-flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-semibold hover:bg-[#F0F3FF] transition-all"
-              style={{ borderColor: '#E2E8F0', color: '#0F172A' }}
-            >
-              <span className="material-symbols-outlined text-[18px]">photo_camera</span>
-              {photoPreview ? 'Change Photo' : 'Upload Photo'}
-            </span>
-            <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
-          </label>
-        </div>
-
-        <FormField label="Full Name">
-          <input
-            className={inputClass}
-            style={inputStyle}
-            value={form.fullName}
-            onChange={(e) => update('fullName', e.target.value)}
-            placeholder="e.g. Julianne Devis"
-          />
-        </FormField>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="Father Name">
-            <input
-              className={inputClass}
-              style={inputStyle}
-              value={form.fatherName}
-              onChange={(e) => update('fatherName', e.target.value)}
-              placeholder="Father's name"
-            />
-          </FormField>
-          <FormField label="CNIC">
-            <input
-              className={inputClass}
-              style={inputStyle}
-              value={form.cnic}
-              onChange={(e) => update('cnic', e.target.value)}
-              placeholder="00000-0000000-0"
-            />
-          </FormField>
-        </div>
-        <FormField label="Role / Designation">
-          <input
-            className={inputClass}
-            style={inputStyle}
-            value={form.roleTitle}
-            onChange={(e) => update('roleTitle', e.target.value)}
-            placeholder="e.g. Senior Product Designer"
-          />
-        </FormField>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="Salary">
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              className={inputClass}
-              style={inputStyle}
-              value={form.salary}
-              onChange={(e) => update('salary', e.target.value)}
-              placeholder="0.00"
-            />
-          </FormField>
-          <FormField label="Monthly Leave Balance (days)">
-            <input
-              type="number"
-              min="0"
-              step="0.5"
-              className={inputClass}
-              style={inputStyle}
-              value={form.monthlyLeaveBalance}
-              onChange={(e) => update('monthlyLeaveBalance', e.target.value)}
-              placeholder="e.g. 22"
-            />
-          </FormField>
-        </div>
-
-        {error && (
-          <div
-            className="rounded-lg px-4 py-3 text-sm"
-            style={{ backgroundColor: '#FEE2E2', color: '#93000A' }}
-          >
-            {error}
-          </div>
-        )}
-
-        <div className="flex gap-3 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 py-2.5 border rounded-lg text-sm font-semibold hover:bg-[#F0F3FF] transition-all"
-            style={{ borderColor: '#E2E8F0', color: '#0F172A' }}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="flex-1 py-2.5 gradient-accent text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-all shadow-md disabled:opacity-60"
-          >
-            {submitting ? 'Creating…' : 'Create Employee'}
-          </button>
-        </div>
-      </form>
-    </ModalShell>
   )
 }
 
@@ -1050,7 +914,7 @@ function EditEmployeeModal({
   onClose,
   onSaved,
 }: {
-  employee: TeamEmployee
+  employee: DetailEmployee
   onClose: () => void
   onSaved: () => void
 }) {

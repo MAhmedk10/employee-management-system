@@ -21,8 +21,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Linkage Digital — Admin Portal",
-  description: "Enterprise employee management system for Linkage Digital.",
+  title: "The Linkage Digital — Admin Portal",
+  description: "Enterprise employee management system for The Linkage Digital.",
 };
 
 export default function RootLayout({
@@ -33,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full antialiased bg-background`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

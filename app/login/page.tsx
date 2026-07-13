@@ -96,45 +96,12 @@ export default function LoginPage() {
         >
           {/* ── Brand logo ── */}
           <div style={{ marginBottom: '24px' }}>
-            {/* Inline SVG wordmark to avoid external image dependency */}
-            <svg width="160" height="36" viewBox="0 0 160 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Linkage Digital">
-              {/* Geometric brand mark */}
-              <rect x="0" y="8" width="20" height="20" rx="2" fill="url(#logo-gradient)" />
-              <rect x="4" y="12" width="12" height="12" rx="1" fill="white" fillOpacity="0.9" />
-              <rect x="7" y="15" width="6" height="6" rx="0.5" fill="url(#logo-gradient)" />
-              {/* Pixel clusters */}
-              <rect x="18" y="6" width="3" height="3" rx="0.5" fill="#2E9BF0" fillOpacity="0.5" />
-              <rect x="22" y="4" width="2" height="2" rx="0.25" fill="#9B30E0" fillOpacity="0.4" />
-              {/* Wordmark */}
-              <text
-                x="30"
-                y="26"
-                fontFamily="var(--font-space-grotesk), system-ui, sans-serif"
-                fontSize="18"
-                fontWeight="700"
-                letterSpacing="-0.5"
-                fill="#0F172A"
-              >
-                Linkage
-              </text>
-              <text
-                x="98"
-                y="26"
-                fontFamily="var(--font-space-grotesk), system-ui, sans-serif"
-                fontSize="18"
-                fontWeight="400"
-                letterSpacing="-0.3"
-                fill="#64748B"
-              >
-                Digital
-              </text>
-              <defs>
-                <linearGradient id="logo-gradient" x1="0" y1="0" x2="20" y2="20" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#2E9BF0" />
-                  <stop offset="1" stopColor="#9B30E0" />
-                </linearGradient>
-              </defs>
-            </svg>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/brand/linkage-full-trim.png"
+              alt="The Linkage Digital"
+              style={{ width: '210px', height: 'auto', display: 'block' }}
+            />
           </div>
 
           {/* ── Header ── */}
