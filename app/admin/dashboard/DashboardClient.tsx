@@ -3,13 +3,6 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import type { AttendanceRow, DashboardStats } from './page'
 
 // ── Status helpers ────────────────────────────────────────────
@@ -677,26 +670,27 @@ export default function DashboardClient({
                     />
                   </div>
                   {/* Status filter */}
-                  <Select
-                    value={statusFilter}
-                    onValueChange={(v) => setStatusFilter(v as ComputedStatus | 'all')}
-                  >
-                    <SelectTrigger
+                  <div className="select-wrapper">
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value as ComputedStatus | 'all')}
                       id="status-filter"
                       aria-label="Filter by status"
-                      className="w-auto min-w-[150px]"
                     >
-                      <SelectValue placeholder="All Statuses" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="present">Present</SelectItem>
-                      <SelectItem value="late">Late</SelectItem>
-                      <SelectItem value="absent">Absent</SelectItem>
-                      <SelectItem value="on_leave">On Leave</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                    </SelectContent>
-                  </Select>
+                      <option value="all">All Statuses</option>
+                      <option value="present">Present</option>
+                      <option value="late">Late</option>
+                      <option value="absent">Absent</option>
+                      <option value="on_leave">On Leave</option>
+                      <option value="pending">Pending</option>
+                    </select>
+                    <span
+                      className="material-symbols-outlined text-[20px] select-chevron"
+                      aria-hidden="true"
+                    >
+                      expand_more
+                    </span>
+                  </div>
                   <a
                     href="/admin/attendance"
                     className="flex items-center gap-1 text-sm font-semibold hover:underline"
