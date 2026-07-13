@@ -98,9 +98,15 @@ interface Props {
   adminName: string
   adminPhotoUrl: string | null
   initialEmployees: TeamEmployee[]
+  initialAddOpen?: boolean
 }
 
-export default function TeamClient({ adminName, adminPhotoUrl, initialEmployees }: Props) {
+export default function TeamClient({
+  adminName,
+  adminPhotoUrl,
+  initialEmployees,
+  initialAddOpen = false,
+}: Props) {
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -111,7 +117,7 @@ export default function TeamClient({ adminName, adminPhotoUrl, initialEmployees 
   const [page, setPage] = useState(1)
 
   // Modals
-  const [addOpen, setAddOpen] = useState(false)
+  const [addOpen, setAddOpen] = useState(initialAddOpen)
   const [editTarget, setEditTarget] = useState<TeamEmployee | null>(null)
 
   // ── Filtering ──────────────────────────────────────────────
@@ -721,7 +727,7 @@ function ModalShell({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar card-shadow"
+        className="bg-white rounded-2xl w-full max-w-[32rem] max-h-[90vh] overflow-y-auto custom-scrollbar card-shadow"
         onClick={(e) => e.stopPropagation()}
       >
         <div

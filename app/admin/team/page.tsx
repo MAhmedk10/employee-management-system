@@ -17,7 +17,12 @@ export type TeamEmployee = {
 }
 
 // ── Server Component ──────────────────────────────────────────
-export default async function AdminTeamPage() {
+export default async function AdminTeamPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ add?: string }>
+}) {
+  const { add } = await searchParams
   const supabase = await createClient()
 
   // 1. Verify authenticated session
@@ -57,6 +62,7 @@ export default async function AdminTeamPage() {
       adminName={employee.full_name}
       adminPhotoUrl={employee.profile_photo_url ?? null}
       initialEmployees={(employees ?? []) as TeamEmployee[]}
+      initialAddOpen={add === '1'}
     />
   )
 }
