@@ -547,7 +547,10 @@ export default function DashboardClient({
                   <span className="material-symbols-outlined text-[18px]">settings</span>
                   Settings
                 </a>
-                <button className="flex-1 md:flex-none px-5 py-2.5 gradient-accent text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-md">
+                <button
+                  onClick={() => router.push('/admin/team?add=1')}
+                  className="flex-1 md:flex-none px-5 py-2.5 gradient-accent text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-md"
+                >
                   <span className="material-symbols-outlined text-[18px]">person_add</span>
                   Add Employee
                 </button>
