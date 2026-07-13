@@ -839,21 +839,26 @@ function RecordAttendanceModal({
   function toIso(timeStr: string, forNextDay = false): string | null {
     if (!timeStr) return null
     let d = date
-    if (forNextDay) {
-      const next = new Date(`${date}T00:00:00`)
-      next.setDate(next.getDate() + 1)
-      d = next.toISOString().slice(0, 10)
+    if (forNextDay && date) {
+      // Advance the calendar date by exactly +1 day using string arithmetic to
+      // avoid UTC-offset issues that corrupt .toISOString().slice(0,10).
+      const [y, mo, dy] = date.split('-').map(Number)
+      const next = new Date(y, mo - 1, dy + 1) // local midnight, no TZ shift
+      const yy = next.getFullYear()
+      const mm = String(next.getMonth() + 1).padStart(2, '0')
+      const dd = String(next.getDate()).padStart(2, '0')
+      d = `${yy}-${mm}-${dd}`
     }
     const local = new Date(`${d}T${timeStr}:00`)
     if (Number.isNaN(local.getTime())) return null
     return local.toISOString()
   }
 
-  // Human-readable label for the next-day note, e.g. "July 13"
+  // Human-readable label for the next-day note, e.g. "July 15"
   const nextDayLabel = (() => {
     if (!date) return ''
-    const next = new Date(`${date}T00:00:00`)
-    next.setDate(next.getDate() + 1)
+    const [y, mo, dy] = date.split('-').map(Number)
+    const next = new Date(y, mo - 1, dy + 1) // local midnight — no UTC shift
     return next.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
   })()
 
