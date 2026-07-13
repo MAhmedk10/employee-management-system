@@ -831,13 +831,31 @@ function RecordAttendanceModal({
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Combine a YYYY-MM-DD date and an HH:mm time into an ISO string
-  function toIso(timeStr: string): string | null {
+  // Returns true when clock-out rolls past midnight relative to clock-in
+  const isNextDay = Boolean(clockIn && clockOut && clockOut < clockIn)
+
+  // Combine a YYYY-MM-DD date and an HH:mm time into an ISO string.
+  // When forNextDay is true the date is advanced by one day (night-shift rollover).
+  function toIso(timeStr: string, forNextDay = false): string | null {
     if (!timeStr) return null
-    const local = new Date(`${date}T${timeStr}:00`)
+    let d = date
+    if (forNextDay) {
+      const next = new Date(`${date}T00:00:00`)
+      next.setDate(next.getDate() + 1)
+      d = next.toISOString().slice(0, 10)
+    }
+    const local = new Date(`${d}T${timeStr}:00`)
     if (Number.isNaN(local.getTime())) return null
     return local.toISOString()
   }
+
+  // Human-readable label for the next-day note, e.g. "July 13"
+  const nextDayLabel = (() => {
+    if (!date) return ''
+    const next = new Date(`${date}T00:00:00`)
+    next.setDate(next.getDate() + 1)
+    return next.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+  })()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -862,7 +880,7 @@ function RecordAttendanceModal({
         employeeId,
         date,
         clockIn: toIso(clockIn),
-        clockOut: toIso(clockOut),
+        clockOut: toIso(clockOut, isNextDay),
       })
       if (!res.success) {
         setError(res.error ?? 'Failed to record attendance.')
@@ -970,7 +988,7 @@ function RecordAttendanceModal({
                 onChange={(e) => setClockIn(e.target.value)}
               />
             </label>
-            <label className="block">
+            <div className="block">
               <span
                 className="block text-[12px] font-semibold mb-1.5 uppercase tracking-wide"
                 style={{ color: '#64748B' }}
@@ -983,8 +1001,20 @@ function RecordAttendanceModal({
                 style={inputStyle}
                 value={clockOut}
                 onChange={(e) => setClockOut(e.target.value)}
+                aria-label="Clock Out"
               />
-            </label>
+              {isNextDay && nextDayLabel && (
+                <p
+                  className="mt-1.5 text-xs flex items-center gap-1"
+                  style={{ color: '#4F46E5' }}
+                >
+                  <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+                    info
+                  </span>
+                  Will be recorded for {nextDayLabel} (next day)
+                </p>
+              )}
+            </div>
           </div>
 
           {error && (
