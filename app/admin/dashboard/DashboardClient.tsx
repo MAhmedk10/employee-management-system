@@ -249,12 +249,23 @@ export default function DashboardClient({
         >
           {/* Logo section */}
           <div
-            className="px-4 h-16 flex items-center justify-between flex-shrink-0 border-b"
+            className={`h-16 flex items-center flex-shrink-0 border-b sidebar-transition ${
+              sidebarCollapsed ? 'lg:justify-center px-3' : 'justify-between px-4'
+            }`}
             style={{ borderColor: '#E2E8F0' }}
           >
-            <div className="flex items-center gap-3 overflow-hidden">
-              {/* Brand mark */}
-              <div className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg gradient-accent">
+            <div className="flex items-center gap-3 min-w-0">
+              {/* Brand mark — doubles as the expand control when collapsed */}
+              <button
+                type="button"
+                onClick={() => sidebarCollapsed && setSidebarCollapsed(false)}
+                className={`w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg gradient-accent ${
+                  sidebarCollapsed ? 'lg:cursor-pointer' : 'cursor-default'
+                }`}
+                aria-label={sidebarCollapsed ? 'Expand sidebar' : undefined}
+                title={sidebarCollapsed ? 'Expand sidebar' : undefined}
+                tabIndex={sidebarCollapsed ? 0 : -1}
+              >
                 <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
                   <rect x="3" y="3" width="16" height="16" rx="2" fill="white" fillOpacity="0.2" />
                   <rect x="6" y="6" width="10" height="10" rx="1.5" fill="white" fillOpacity="0.9" />
@@ -266,23 +277,27 @@ export default function DashboardClient({
                     </linearGradient>
                   </defs>
                 </svg>
+              </button>
+              {/* Wordmark + subtitle — smoothly collapses to zero width, no clip */}
+              <div
+                className={`flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${
+                  sidebarCollapsed ? 'lg:max-w-0 lg:opacity-0' : 'max-w-[160px] opacity-100'
+                }`}
+                aria-hidden={sidebarCollapsed}
+              >
+                <h1
+                  className="font-bold text-base leading-tight whitespace-nowrap"
+                  style={{ color: '#0F172A', fontFamily: 'var(--font-space-grotesk)' }}
+                >
+                  The Linkage
+                </h1>
+                <p
+                  className="text-[10px] uppercase tracking-widest font-bold leading-none whitespace-nowrap"
+                  style={{ color: '#64748B' }}
+                >
+                  Enterprise EMS
+                </p>
               </div>
-              {!sidebarCollapsed && (
-                <div>
-                  <h1
-                    className="font-bold text-base leading-tight whitespace-nowrap"
-                    style={{ color: '#0F172A', fontFamily: 'var(--font-space-grotesk)' }}
-                  >
-                    The Linkage
-                  </h1>
-                  <p
-                    className="text-[10px] uppercase tracking-widest font-bold leading-none"
-                    style={{ color: '#64748B' }}
-                  >
-                    Enterprise EMS
-                  </p>
-                </div>
-              )}
             </div>
             {/* Mobile close */}
             <button
@@ -294,19 +309,21 @@ export default function DashboardClient({
                 close
               </span>
             </button>
-            {/* Desktop collapse toggle */}
-            <button
-              className="hidden lg:flex items-center justify-center w-6 h-6 rounded-full hover:bg-[#F0F3FF] transition-colors ml-auto"
-              onClick={() => setSidebarCollapsed((v) => !v)}
-              aria-label="Toggle sidebar"
-            >
-              <span
-                className="material-symbols-outlined text-[18px]"
-                style={{ color: '#64748B' }}
+            {/* Desktop collapse toggle — only shown when expanded */}
+            {!sidebarCollapsed && (
+              <button
+                className="hidden lg:flex items-center justify-center w-6 h-6 rounded-full hover:bg-[#F0F3FF] transition-colors ml-auto flex-shrink-0"
+                onClick={() => setSidebarCollapsed(true)}
+                aria-label="Collapse sidebar"
               >
-                {sidebarCollapsed ? 'chevron_right' : 'chevron_left'}
-              </span>
-            </button>
+                <span
+                  className="material-symbols-outlined text-[18px]"
+                  style={{ color: '#64748B' }}
+                >
+                  chevron_left
+                </span>
+              </button>
+            )}
           </div>
 
           {/* Nav */}
@@ -653,25 +670,27 @@ export default function DashboardClient({
                     />
                   </div>
                   {/* Status filter */}
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as ComputedStatus | 'all')}
-                    className="px-3 py-1.5 border rounded-lg text-sm outline-none cursor-pointer"
-                    style={{
-                      borderColor: '#E2E8F0',
-                      color: '#0F172A',
-                      backgroundColor: '#FFFFFF',
-                      fontFamily: 'var(--font-inter)',
-                    }}
-                    id="status-filter"
-                  >
-                    <option value="all">All Statuses</option>
-                    <option value="present">Present</option>
-                    <option value="late">Late</option>
-                    <option value="absent">Absent</option>
-                    <option value="on_leave">On Leave</option>
-                    <option value="pending">Pending</option>
-                  </select>
+                  <div className="select-wrapper">
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value as ComputedStatus | 'all')}
+                      id="status-filter"
+                      aria-label="Filter by status"
+                    >
+                      <option value="all">All Statuses</option>
+                      <option value="present">Present</option>
+                      <option value="late">Late</option>
+                      <option value="absent">Absent</option>
+                      <option value="on_leave">On Leave</option>
+                      <option value="pending">Pending</option>
+                    </select>
+                    <span
+                      className="material-symbols-outlined text-[20px] select-chevron"
+                      aria-hidden="true"
+                    >
+                      expand_more
+                    </span>
+                  </div>
                   <a
                     href="/admin/attendance"
                     className="flex items-center gap-1 text-sm font-semibold hover:underline"
